@@ -34,12 +34,12 @@ fatal: [sonar-01]: FAILED! => {"changed": false, "msg": "Destination directory /
 
 ### Основная часть
 
-1. Создаём новый проект, название произвольное
-**Решение:** dn-sonar, token dn-sonar: 387958913273d116228a5365ff45a67f69f2030f
-2. Скачиваем пакет sonar-scanner, который нам предлагает скачать сам sonarqube
-**Решение:** sudo wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
-3. Делаем так, чтобы binary был доступен через вызов в shell (или меняем переменную PATH или любой другой удобный вам способ)
-**Решение:** export PATH=$PATH:/opt/sonar/sonar-scanner-4.7.0.2747-linux/bin
+1. Создаём новый проект, название произвольное  
+**Решение:** "dn-sonar, token dn-sonar: 387958913273d116228a5365ff45a67f69f2030f"
+2. Скачиваем пакет sonar-scanner, который нам предлагает скачать сам sonarqube  
+**Решение:** "sudo wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip"
+3. Делаем так, чтобы binary был доступен через вызов в shell (или меняем переменную PATH или любой другой удобный вам способ)  
+**Решение:** "export PATH=$PATH:/opt/sonar/sonar-scanner-4.7.0.2747-linux/bin"
 4. Проверяем `sonar-scanner --version`
 5. Запускаем анализатор против кода из директории [example](./example) с дополнительным ключом `-Dsonar.coverage.exclusions=fail.py`
 ```
@@ -51,8 +51,8 @@ sonar-scanner \
   -Dsonar.coverage.exclusions=fail.py
 ```
 6. Смотрим результат в интерфейсе
-7. Исправляем ошибки, которые он выявил(включая warnings)
-Исправляем в fail.py :
+7. Исправляем ошибки, которые он выявил(включая warnings)  
+Исправляем в fail.py :  
 ```
 def increment(index):
     loc_index += 0
@@ -70,10 +70,10 @@ while (index < 10):
     print(get_square(index))
 ```
 8. Запускаем анализатор повторно - проверяем, что QG пройдены успешно
-9. Делаем скриншот успешного прохождения анализа, прикладываем к решению ДЗ
+9. Делаем скриншот успешного прохождения анализа, прикладываем к решению ДЗ  
 **Решение:**  
-https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar01.png
-https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar02.png
+![Скрин с ошибками](https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar01.png)  
+![Скрин после исправления](https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar02.png)  
 
 ## Знакомство с Nexus
 
@@ -87,8 +87,8 @@ https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar02.png
    5. type: tar.gz
 2. В него же загружаем такой же артефакт, но с version: 8_102
 3. Проверяем, что все файлы загрузились успешно
-4. В ответе присылаем файл `maven-metadata.xml` для этого артефекта
-**Решение:**
+4. В ответе присылаем файл `maven-metadata.xml` для этого артефекта  
+**Решение:**  
 примечание: версии указал 312 и 322  
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -106,7 +106,7 @@ https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar02.png
 </versioning>
 </metadata>
 ```
-https://github.com/duskdemon/devops-netology-cicd/blob/main/maven-metadata.xml
+https://github.com/duskdemon/devops-netology-cicd/blob/main/maven-metadata.xml  
 
 ### Знакомство с Maven
 
@@ -122,10 +122,10 @@ https://github.com/duskdemon/devops-netology-cicd/blob/main/maven-metadata.xml
 
 1. Меняем в `pom.xml` блок с зависимостями под наш артефакт из первого пункта задания для Nexus (java с версией 8_282)
 2. Запускаем команду `mvn package` в директории с `pom.xml`, ожидаем успешного окончания
-3. Проверяем директорию `~/.m2/repository/`, находим наш артефакт
-**Решение:** https://github.com/duskdemon/devops-netology-cicd/blob/main/maven01.png
-4. В ответе присылаем исправленный файл `pom.xml`
-**Решение:** 
+3. Проверяем директорию `~/.m2/repository/`, находим наш артефакт  
+**Решение:** [артефакт в папке](https://github.com/duskdemon/devops-netology-cicd/blob/main/maven01.png)
+4. В ответе присылаем исправленный файл `pom.xml`  
+**Решение:**  
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -152,4 +152,4 @@ https://github.com/duskdemon/devops-netology-cicd/blob/main/maven-metadata.xml
   </dependencies>
 </project>
 ```
-https://github.com/duskdemon/devops-netology-cicd/blob/main/pom.xml
+https://github.com/duskdemon/devops-netology-cicd/blob/main/pom.xml  
