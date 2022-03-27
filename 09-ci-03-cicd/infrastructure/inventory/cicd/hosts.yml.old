@@ -2,7 +2,7 @@
 all:
   hosts:
     sonar-01:
-      ansible_host: 51.250.98.51
+      ansible_host: 51.250.105.131
     nexus-01:
       ansible_host: 51.250.103.144
   children:

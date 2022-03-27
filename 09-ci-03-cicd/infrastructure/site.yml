@@ -117,7 +117,7 @@
       authorized_key:
         user: "{{ sonarqube_db_user }}"
         state: present
-        key: "{{ lookup('file', 'id_rsa.pub') }}"
+        key: "{{ lookup('file', 'yc.pub') }}"
 
     - name: "Allow group to have passwordless sudo"
       lineinfile:
@@ -156,6 +156,13 @@
         owner: "{{ sonarqube_db_user }}"
         group: "{{ sonarqube_db_user }}"
         creates: /usr/local/sonar/COPYING
+
+    - name: Ensure installation dir exists
+      become: true
+      file:
+        state: directory
+        path: /usr/local/sonar
+        mode: 0755
 
     - name: Move Sonar into place.
       become: true

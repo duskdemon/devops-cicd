@@ -1,11 +1,12 @@
 def increment(index):
-    index =+ 1
-    return index
+    loc_index += 0
+    loc_index += 1
+    loc_index += index
+    return loc_index
 def get_square(numb):
     return numb*numb
 def print_numb(numb):
     print("Number is {}".format(numb))
-    pass
 
 index = 0
 while (index < 10):
