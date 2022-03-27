@@ -72,7 +72,9 @@ while (index < 10):
 8. Запускаем анализатор повторно - проверяем, что QG пройдены успешно
 9. Делаем скриншот успешного прохождения анализа, прикладываем к решению ДЗ  
 **Решение:**  
+Скрин с ошибками  
 ![Скрин с ошибками](https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar01.png)  
+Скрин с ошибками  
 ![Скрин после исправления](https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar02.png)  
 
 ## Знакомство с Nexus
@@ -123,7 +125,8 @@ https://github.com/duskdemon/devops-netology-cicd/blob/main/maven-metadata.xml
 1. Меняем в `pom.xml` блок с зависимостями под наш артефакт из первого пункта задания для Nexus (java с версией 8_282)
 2. Запускаем команду `mvn package` в директории с `pom.xml`, ожидаем успешного окончания
 3. Проверяем директорию `~/.m2/repository/`, находим наш артефакт  
-**Решение:** [артефакт в папке](https://github.com/duskdemon/devops-netology-cicd/blob/main/maven01.png)
+**Решение:** артефакт в папке  
+![артефакт в папке](https://github.com/duskdemon/devops-netology-cicd/blob/main/maven01.png)
 4. В ответе присылаем исправленный файл `pom.xml`  
 **Решение:**  
 ```xml
