@@ -1,158 +1,57 @@
 #devops-netology
-### 09-ci-03-cicd
-# Домашнее задание к занятию "09.03 CI\CD"
+### 09-ci-04-jenkins
+# Домашнее задание к занятию "09.04 Jenkins"
 
 ## Подготовка к выполнению
 
-1. Создаём 2 VM в yandex cloud со следующими параметрами: 2CPU 4RAM Centos7(остальное по минимальным требованиям)
-2. Прописываем в [inventory](./infrastructure/inventory/cicd/hosts.yml) [playbook'a](./infrastructure/site.yml) созданные хосты
-3. Добавляем в [files](./infrastructure/files/) файл со своим публичным ключом (id_rsa.pub). Если ключ называется иначе - найдите таску в плейбуке, которая использует id_rsa.pub имя и исправьте на своё
-4. Запускаем playbook, ожидаем успешного завершения
+1. Создать 2 VM: для jenkins-master и jenkins-agent.
+2. Установить jenkins при помощи playbook'a.
+3. Запустить и проверить работоспособность.
+4. Сделать первоначальную настройку.
 
-**Решение:**  
-Запускаем playbook: "ansible-playbook site.yml -i inventory/cicd/hosts.yml"  
-ошибка:  
+**Выполнение:**  
+1. Создано 2 ВМ на ресурсах Яндекс клауд: мастер 51.250.103.9 и агент 84.252.143.225.  
+2. После запуска плейбука столкнулся с ошибкой в процессе установки Ансибл(кодировка не совпадает), решил с помощью установки $LANG=en_US.UTF-8 и $LC_ALL=en_US.UTF-8.  
+3. Заходим на мастер ноду по порту 8080 и вводим пароль, предварительно взяв его из ВМ мастера по пути /var/lib/jenkins/secrets/initialAdminPassword.
+4. Проводим установку через Веб интерфейс "Install suggested plugins", jenkins доступен по "http://51.250.103.9:8080/". Делаем настройку сборщика на агенте, запускаем, смотрим лог:
 ```
-TASK [Move Sonar into place.] *******************************************************************************************************
-fatal: [sonar-01]: FAILED! => {"changed": false, "msg": "Destination directory /usr/local/sonar does not exist"}
+$ ssh 84.252.143.225 java -jar /opt/jenkins_agent/agent.jar
+<===[JENKINS REMOTING CAPACITY]===>channel started
+Remoting version: 4.13
+This is a Unix agent
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by jenkins.slaves.StandardOutputSwapper$ChannelSwapper to constructor java.io.FileDescriptor(int)
+WARNING: Please consider reporting this to the maintainers of jenkins.slaves.StandardOutputSwapper$ChannelSwapper
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+Evacuated stdout
+Agent successfully connected and online
 ```
-исправляем, добавив таску в site.yml:  
+
+## Основная часть
+
+1. Сделать Freestyle Job, который будет запускать `molecule test` из любого вашего репозитория с ролью.
+
+**Выполнение:**  
+Создаем свободную задачу, добавляя в разделе гит в нее ссылку на репозиторий "git@github.com:duskdemon/filebeat-role.git"  и добавляем пользовательские учетные данные(персональный ключ гита). Задача завершается с ошибкой, т.к. продукты elastic.co заблокированы для ip-адресов в России(Яндекс клауд).
 ```
-    - name: Ensure installation dir exists
-      become: true
-      file:
-        state: directory
-        path: /usr/local/sonar
-        mode: 0755
+17:33:16 fatal: [ubuntu -> localhost]: FAILED! => {"attempts": 3, "changed": false, "dest": "files/kibana-7.14.0-amd64.deb", "elapsed": 0, "msg": "Request failed", "response": "HTTP Error 403: Forbidden", "status_code": 403, "url": "https://artifacts.elastic.co/downloads/kibana/kibana-7.14.0-amd64.deb"}
 ```
-5. Проверяем готовность Sonarqube через [браузер](http://localhost:9000)
-6. Заходим под admin\admin, меняем пароль на свой
-7.  Проверяем готовность Nexus через [бразуер](http://localhost:8081)
-8. Подключаемся под admin\admin123, меняем пароль, сохраняем анонимный доступ
+2. Сделать Declarative Pipeline Job, который будет запускать `molecule test` из любого вашего репозитория с ролью.
+3. Перенести Declarative Pipeline в репозиторий в файл `Jenkinsfile`.
+4. Создать Multibranch Pipeline на запуск `Jenkinsfile` из репозитория.
+5. Создать Scripted Pipeline, наполнить его скриптом из [pipeline](./pipeline).
+6. Внести необходимые изменения, чтобы Pipeline запускал `ansible-playbook` без флагов `--check --diff`, если не установлен параметр при запуске джобы (prod_run = True), по умолчанию параметр имеет значение False и запускает прогон с флагами `--check --diff`.
+7. Проверить работоспособность, исправить ошибки, исправленный Pipeline вложить в репозиторий в файл `ScriptedJenkinsfile`. Цель: получить собранный стек ELK в Ya.Cloud.
+8. Отправить две ссылки на репозитории в ответе: с ролью и Declarative Pipeline и c плейбукой и Scripted Pipeline.
 
-## Знакомоство с SonarQube
+**Выполнение:**  
 
-### Основная часть
+Поскольку продукты elasticco заблокированы для ip-адресов в России, не получается собрать стек ELK, т.к. плейбуки выпадают с ошибкой  
 
-1. Создаём новый проект, название произвольное  
-**Решение:** "dn-sonar, token dn-sonar: 387958913273d116228a5365ff45a67f69f2030f"
-2. Скачиваем пакет sonar-scanner, который нам предлагает скачать сам sonarqube  
-**Решение:** "sudo wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip"
-3. Делаем так, чтобы binary был доступен через вызов в shell (или меняем переменную PATH или любой другой удобный вам способ)  
-**Решение:** "export PATH=$PATH:/opt/sonar/sonar-scanner-4.7.0.2747-linux/bin"
-4. Проверяем `sonar-scanner --version`
-5. Запускаем анализатор против кода из директории [example](./example) с дополнительным ключом `-Dsonar.coverage.exclusions=fail.py`
-```
-sonar-scanner \
-  -Dsonar.projectKey=dn-sonar \
-  -Dsonar.sources=. \
-  -Dsonar.host.url=http://51.250.98.51:9000 \
-  -Dsonar.login=387958913273d116228a5365ff45a67f69f2030f
-  -Dsonar.coverage.exclusions=fail.py
-```
-6. Смотрим результат в интерфейсе
-7. Исправляем ошибки, которые он выявил(включая warnings)  
-Исправляем в fail.py :  
-```
-def increment(index):
-    loc_index += 0
-    loc_index += 1
-    loc_index += index
-    return loc_index
-def get_square(numb):
-    return numb*numb
-def print_numb(numb):
-    print("Number is {}".format(numb))
+Выполнение пунктов по созданию джобов и пайплайнов подтверждаю скриншотом:  
+![скрин Дженкинса](https://github.com/duskdemon/devops-netology-cicd/blob/main/jenkins01.png)  
+Ниже ссылки на дженкинс-файлы  
+1. [Jenkinsfile](https://github.com/duskdemon/devops-netology-cicd/blob/main/Jenkinsfile)  
+2. [ScriptedJenkinsfile](https://github.com/duskdemon/devops-netology-cicd/blob/main/ScriptedJenkinsfile)  
 
-index = 0
-while (index < 10):
-    index = increment(index)
-    print(get_square(index))
-```
-8. Запускаем анализатор повторно - проверяем, что QG пройдены успешно
-9. Делаем скриншот успешного прохождения анализа, прикладываем к решению ДЗ  
-**Решение:**  
-Скрин с ошибками  
-![Скрин с ошибками](https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar01.png)  
-Скрин с ошибками  
-![Скрин после исправления](https://github.com/duskdemon/devops-netology-cicd/blob/main/sonar02.png)  
-
-## Знакомство с Nexus
-
-### Основная часть
-
-1. В репозиторий `maven-public` загружаем артефакт с GAV параметрами:
-   1. groupId: netology
-   2. artifactId: java
-   3. version: 8_282
-   4. classifier: distrib
-   5. type: tar.gz
-2. В него же загружаем такой же артефакт, но с version: 8_102
-3. Проверяем, что все файлы загрузились успешно
-4. В ответе присылаем файл `maven-metadata.xml` для этого артефекта  
-**Решение:**  
-примечание: версии указал 312 и 322  
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<metadata modelVersion="1.1.0">
-<groupId>netology</groupId>
-<artifactId>java</artifactId>
-<versioning>
-<latest>322</latest>
-<release>322</release>
-<versions>
-<version>312</version>
-<version>322</version>
-</versions>
-<lastUpdated>20220327144851</lastUpdated>
-</versioning>
-</metadata>
-```
-https://github.com/duskdemon/devops-netology-cicd/blob/main/maven-metadata.xml  
-
-### Знакомство с Maven
-
-### Подготовка к выполнению
-
-1. Скачиваем дистрибутив с [maven](https://maven.apache.org/download.cgi)
-2. Разархивируем, делаем так, чтобы binary был доступен через вызов в shell (или меняем переменную PATH или любой другой удобный вам способ)
-3. Удаляем из `apache-maven-<version>/conf/settings.xml` упоминание о правиле, отвергающем http соединение( раздел mirrors->id: my-repository-http-unblocker)
-4. Проверяем `mvn --version`
-5. Забираем директорию [mvn](./mvn) с pom
-
-### Основная часть
-
-1. Меняем в `pom.xml` блок с зависимостями под наш артефакт из первого пункта задания для Nexus (java с версией 8_282)
-2. Запускаем команду `mvn package` в директории с `pom.xml`, ожидаем успешного окончания
-3. Проверяем директорию `~/.m2/repository/`, находим наш артефакт  
-**Решение:** артефакт в папке  
-![артефакт в папке](https://github.com/duskdemon/devops-netology-cicd/blob/main/maven01.png)
-4. В ответе присылаем исправленный файл `pom.xml`  
-**Решение:**  
-```xml
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
- 
-  <groupId>com.netology.app</groupId>
-  <artifactId>simple-app</artifactId>
-  <version>1.0-SNAPSHOT</version>
-   <repositories>
-    <repository>
-      <id>my-repo</id>
-      <name>maven-public</name>
-      <url>http://51.250.103.144:8081/repository/maven-public/</url>
-    </repository>
-  </repositories>
-  <dependencies>
-    <dependency>
-      <groupId>netology</groupId>
-      <artifactId>java</artifactId>
-      <version>322</version>
-      <classifier>distrib</classifier>
-      <type>tar.gz</type>
-    </dependency>
-  </dependencies>
-</project>
-```
-https://github.com/duskdemon/devops-netology-cicd/blob/main/pom.xml  
